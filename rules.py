@@ -63,6 +63,10 @@ def should_have_slide_numbers(prs, slide_feedback):
             # Mark as candidate for slide number
             if num_paragraphs == 1:
                 shape_text = shape.text.strip()
+                circled_numbers = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩',
+                                    '⑪', '⑫', '⑬', '⑭', '⑮', '⑯', '⑰', '⑱', '⑲', '⑳']
+                if shape_text.isdigit() and shape_text in circled_numbers:
+                    shape_text = str(circled_numbers.index(shape_text) + 1)
                 if ((shape_text.isdigit() and int(shape_text) == slide_num) or
                      shape_text=="‹#›"):
                     if (shape_top > slide_height * 0.9 or
@@ -220,6 +224,12 @@ def should_have_high_contrast_fonts_colours(prs, config, slide_feedback):
                     slide_feedback[slide_num - 1] += slide_feedback_comment
                     result = False
 
+            if not hasattr(shape, 'fill'):
+                slide_feedback[slide_num - 1] += (f"Shape {shape_type} does not "
+                                                    f"have a fill attribute.\n")
+                result = False
+                continue
+            
             fill_format = shape.fill
 
             font_check_against_color = slide_background_color
