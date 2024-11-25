@@ -1,4 +1,5 @@
 # PPTChecker - PowerPoint Checker
+@Shijie Xu, forked from https://github.com/abrahamchan/PPTChecker.git
 
 PPTChecker is a tool to check the format of your PowerPoint presentations
 so that they can be optimized to better engage with your audience!
