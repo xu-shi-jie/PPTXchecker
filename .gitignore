@@ -162,3 +162,5 @@ cython_debug/
 # Other files
 *.html
 
+.history
+images/

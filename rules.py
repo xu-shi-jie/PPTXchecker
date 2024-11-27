@@ -64,13 +64,13 @@ def should_have_slide_numbers(prs, slide_feedback):
             if num_paragraphs == 1:
                 shape_text = shape.text.strip()
                 circled_numbers = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩',
-                                    '⑪', '⑫', '⑬', '⑭', '⑮', '⑯', '⑰', '⑱', '⑲', '⑳']
+                                   '⑪', '⑫', '⑬', '⑭', '⑮', '⑯', '⑰', '⑱', '⑲', '⑳']
                 if shape_text.isdigit() and shape_text in circled_numbers:
                     shape_text = str(circled_numbers.index(shape_text) + 1)
                 if ((shape_text.isdigit() and int(shape_text) == slide_num) or
-                     shape_text=="‹#›"):
+                        shape_text == "‹#›"):
                     if (shape_top > slide_height * 0.9 or
-                        shape_top < slide_height * 0.1):
+                            shape_top < slide_height * 0.1):
                         slide_has_slide_number = True
                         has_slide_numbers = True
                         if (shape_left == 0 and shape_top == 0):
@@ -139,7 +139,7 @@ def has_smooth_slide_transitions(prs, config, slide_feedback):
                     prev_shape_pos = shapes_prev[shape_hash]
                     if (prev_shape_pos == curr_shape_pos and
                         len(shapes_attr_curr[shape_hash]) ==
-                        len(shapes_attr_prev[shape_hash])):
+                            len(shapes_attr_prev[shape_hash])):
                         del shapes_prev[shape_hash]
 
             for shape_hash, prev_shape_pos in shapes_prev.items():
@@ -153,7 +153,7 @@ def has_smooth_slide_transitions(prs, config, slide_feedback):
                          within_bounds(prev_shape_pos, curr_shape_pos,
                                        shape_pos_threshold, prs.slide_width,
                                        prs.slide_height)) and
-                        shapes_attr_prev[shape_hash] == shape_attr):
+                            shapes_attr_prev[shape_hash] == shape_attr):
                         has_smooth_transitions = False
 
                         if len(shape_attr) > 1:
@@ -182,7 +182,7 @@ def has_smooth_slide_transitions(prs, config, slide_feedback):
 
 
 def should_have_high_contrast_fonts_colours(prs, config, slide_feedback):
-# Only checks colours of shapes, textboxes, lines, but not pictures and graphs
+    # Only checks colours of shapes, textboxes, lines, but not pictures and graphs
     shape_min_color_contrast_ratio = config["shape_min_color_contrast_ratio"]
     font_min_color_contrast_ratio = config["font_min_color_contrast_ratio"]
     min_size_font = config["min_size_font"]
@@ -218,22 +218,26 @@ def should_have_high_contrast_fonts_colours(prs, config, slide_feedback):
                 if line_width < min_line_width:
                     shape_type_str = str(shape_type)
                     shape_width_pt = str(shape.width.pt)
-                    slide_feedback_comment = (f"Line width for {shape_type_str} "
+                    slide_feedback_comment = (f"🔎 Line width for {shape_type_str} "
                                               f"is too small to be seen at "
                                               f"{shape_width_pt} pts.\n")
                     slide_feedback[slide_num - 1] += slide_feedback_comment
                     result = False
 
             if not hasattr(shape, 'fill'):
-                slide_feedback[slide_num - 1] += (f"Shape {shape_type} does not "
-                                                    f"have a fill attribute.\n")
-                result = False
+                # # get shape relative position (100% = slide width/height)
+                # shape_pos = (shape.left / prs.slide_width,
+                #              shape.top / prs.slide_height)
+                # shape_pos = f'{shape_pos[0]:.2f}, {shape_pos[1]:.2f}'
+                # slide_feedback[slide_num - 1] += (f"Shape {shape_type} at {shape_pos} does not "
+                #                                   f"have a fill attribute.\n")
+                # result = False
                 continue
-            
+
             fill_format = shape.fill
 
             font_check_against_color = slide_background_color
-            at_least_one_font_visible = False # Some fonts may be intentionally greyed out
+            at_least_one_font_visible = False  # Some fonts may be intentionally greyed out
 
             # Only check fills of shapes that have a solid fill
             if fill_format.type == MSO_FILL.SOLID:
@@ -246,8 +250,9 @@ def should_have_high_contrast_fonts_colours(prs, config, slide_feedback):
                                                      shape.fill.fore_color.brightness)
 
                 is_rectangle = False
-                contrast_ratio = calculate_contrast_ratio(slide_background_color, color_rgb)
-                if (contrast_ratio < shape_min_color_contrast_ratio and not contrast_ratio==1):
+                contrast_ratio = calculate_contrast_ratio(
+                    slide_background_color, color_rgb)
+                if (contrast_ratio < shape_min_color_contrast_ratio and not contrast_ratio == 1):
                     if shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE:
                         shape_descriptor = shape.auto_shape_type
                         if (shape_descriptor in (MSO_SHAPE.RECTANGLE,
@@ -259,7 +264,7 @@ def should_have_high_contrast_fonts_colours(prs, config, slide_feedback):
                     # Ignore rectangles as they are often used to cover components
                     if not is_rectangle:
                         shape_descriptor = str(shape_descriptor)
-                        slide_feedback_comment = (f"Colour contrast for "
+                        slide_feedback_comment = (f"🌈 Colour contrast for "
                                                   f"{shape_descriptor}"
                                                   f"is not sufficient from "
                                                   f"the slide background "
@@ -284,12 +289,13 @@ def should_have_high_contrast_fonts_colours(prs, config, slide_feedback):
                             else:
                                 shape_descriptor = shape_type
                             shape_descriptor = str(shape_descriptor)
-                            slide_feedback_comment = (f"Font size for text "
+                            slide_feedback_comment = (u"🗚 Font size for text "
                                                       f"'{run.text}' in "
                                                       f"shape "
                                                       f"{shape_descriptor} "
                                                       f"is too small.\n")
-                            slide_feedback[slide_num - 1] += slide_feedback_comment
+                            slide_feedback[slide_num -
+                                           1] += slide_feedback_comment
                             result = False
 
                         if not run.text:
@@ -309,13 +315,13 @@ def should_have_high_contrast_fonts_colours(prs, config, slide_feedback):
                         contrast_ratio = calculate_contrast_ratio(font_check_against_color,
                                                                   font_color_rgb)
                         if (contrast_ratio < font_min_color_contrast_ratio and
-                            not at_least_one_font_visible):
+                                not at_least_one_font_visible):
                             if shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE:
                                 shape_descriptor = shape.auto_shape_type
                             else:
                                 shape_descriptor = shape_type
                             shape_descriptor = str(shape_descriptor)
-                            shape_feedback_comment_temp += (f"Font colour "
+                            shape_feedback_comment_temp += (f"🌈 Font colour "
                                                             f"contrast for text "
                                                             f"'{run.text}' "
                                                             f"in shape "
@@ -325,7 +331,7 @@ def should_have_high_contrast_fonts_colours(prs, config, slide_feedback):
                                                             f"the background "
                                                             f"colour.\n")
                         else:
-                            at_least_one_font_visible = True # Change back to true
+                            at_least_one_font_visible = True  # Change back to true
 
             if not at_least_one_font_visible and shape_feedback_comment_temp:
                 slide_feedback[slide_num - 1] += shape_feedback_comment_temp
@@ -359,7 +365,7 @@ def should_not_have_excessive_text(prs, config, slide_feedback):
         word_count = len(slide_text.split(' '))
 
         if word_count > max_num_words_per_slide:
-            slide_feedback_comment = "Excessive amount of words on this slide.\n"
+            slide_feedback_comment = "😴 Excessive amount of words on this slide.\n"
             slide_feedback[slide_num - 1] += slide_feedback_comment
             has_excessive_text = True
 
@@ -390,12 +396,15 @@ def does_not_have_complete_sentences(prs, slide_feedback):
                             len(shape_text.split(' ')) > 4 and
                             not shape_text.endswith('?') and
                             ':' not in shape_text and
-                            '-' not in shape_text):
-                            word_tokens = convert_string_into_word_tokens(shape_text)
-                            words_classified = identify_parts_of_speech(wordset, word_tokens)
+                                '-' not in shape_text):
+                            word_tokens = convert_string_into_word_tokens(
+                                shape_text)
+                            words_classified = identify_parts_of_speech(
+                                wordset, word_tokens)
                             if is_full_sentence(words_classified):
                                 slide_feedback_comment = f"Avoid full sentences: '{run.text}'\n"
-                                slide_feedback[slide_num - 1] += slide_feedback_comment
+                                slide_feedback[slide_num -
+                                               1] += slide_feedback_comment
                                 result = False
 
         slide_num += 1
@@ -428,7 +437,8 @@ def estimate_presentation_length(prs, config):
             if "backup" in title:
                 break
 
-        cumul_slide_times.append(time.strftime('%H:%M:%S', time.gmtime(total_prs_time)))
+        cumul_slide_times.append(time.strftime(
+            '%H:%M:%S', time.gmtime(total_prs_time)))
         time_per_slide = num_breaks * seconds_per_break
 
         for punctuation in string_punctuation:
@@ -444,4 +454,3 @@ def estimate_presentation_length(prs, config):
         slide_times.append(time.strftime('%M:%S', time.gmtime(time_per_slide)))
 
     return time.strftime('%H:%M:%S', time.gmtime(total_prs_time)), slide_times, cumul_slide_times
-

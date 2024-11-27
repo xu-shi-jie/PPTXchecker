@@ -98,7 +98,7 @@ def get_scheme_color_rgb(color_scheme, theme_color, brightness):
             luminance = luminance * (1 + brightness)
         srgb = np.array(colorsys.hls_to_rgb(hue, luminance, sat))
         srgb = (srgb * 255).round(0).astype(int)
-        rgb2hex = lambda r,g,b: '%02X%02X%02X' %(r,g,b)
+        def rgb2hex(r, g, b): return '%02X%02X%02X' % (r, g, b)
         return rgb2hex(*srgb)
 
     return color_rgb
@@ -114,7 +114,7 @@ def calculate_luminace(color_code):
     if index < 0.03928:
         return index / 12.92
 
-    return ( ( index + 0.055 ) / 1.055 ) ** 2.4
+    return ((index + 0.055) / 1.055) ** 2.4
 
 
 # Solution from https://github.com/Peter-Slump/python-contrast-ratio
@@ -215,9 +215,9 @@ def is_full_sentence(classified_words):
             if 'n' in part:
                 sentence_comp_count = 1
         else:
-            if 'v' in part and 'n' not in part and sentence_comp_count%2==1:
+            if 'v' in part and 'n' not in part and sentence_comp_count % 2 == 1:
                 sentence_comp_count += 1
-            elif 'n' in part and 'v' not in part and sentence_comp_count%2==0:
+            elif 'n' in part and 'v' not in part and sentence_comp_count % 2 == 0:
                 sentence_comp_count += 1
         word_count += 1
     return sentence_comp_count >= 3
@@ -225,18 +225,20 @@ def is_full_sentence(classified_words):
 
 def display_comments_on_webpage(time_estimate, display_info,
                                 pass_all_checks, output_file):
-    dataframe = pd.DataFrame(display_info["slide_feedback"], columns=["Feedback"])
-    dataframe.index += 1
+    dataframe = pd.DataFrame(
+        display_info["slide_feedback"], columns=["Feedback"])
+    dataframe.index += display_info["start_slide_num"]
     dataframe = dataframe.rename_axis("Slide #").reset_index()
     dataframe["Time at Slide Start"] = display_info["cumul_slide_times"]
     dataframe["Time Spent on Slide"] = display_info["slide_times"]
 
     html_table_blue_light = build_table(dataframe, 'blue_dark',
                                         index=False, escape=False)
-    with open(output_file, 'w') as wfile:
+    with open(output_file, 'w', encoding='utf-8') as wfile:
         wfile.write("<h3>General Feedback:</h3>")
         if time_estimate:
-            wfile.write(f"Estimate total time for presentation: {time_estimate}")
+            wfile.write(
+                f"Estimate total time for presentation: {time_estimate}")
 
         general_feedback = display_info["general_feedback"]
 
@@ -247,5 +249,4 @@ def display_comments_on_webpage(time_estimate, display_info,
 
         wfile.write(html_table_blue_light)
 
-    webbrowser.open_new_tab(output_file)
-
+    webbrowser.open(output_file)

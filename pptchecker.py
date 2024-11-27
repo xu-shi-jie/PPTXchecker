@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+from time import sleep
 from pptx import Presentation
 from util import display_comments_on_webpage, is_backup_slide, read_config_yaml
 from rules import (
@@ -13,16 +14,22 @@ from rules import (
     does_not_have_complete_sentences,
     estimate_presentation_length
 )
+import os
+import datetime
+from loguru import logger
 
 parser = argparse.ArgumentParser(description='Analyze')
-parser.add_argument('-p', '--presentation', type=str)
+parser.add_argument('-p', '--presentation', type=str,
+                    default=r'C:\Users\xushi\Nextcloud\Shijie\PhD Defense\Slides\PhD_Defense_ShijieXu.pptx')
 parser.add_argument('-o', '--output', type=str, default="output.html")
 args = parser.parse_args()
 
 
 def main_controller(prs, config):
     slide_feedback = []
-    for slide in prs.slides:
+    for i, slide in enumerate(prs.slides):
+        if i == 0:
+            start_slide_num = prs.slides.index(slide)
         if is_backup_slide(slide):
             break
         slide_feedback.append("")
@@ -42,7 +49,8 @@ def main_controller(prs, config):
     if not satisfied:
         general_feedback += "Please check slide transitions.<br>"
 
-    satisfied = should_have_high_contrast_fonts_colours(prs, config, slide_feedback)
+    satisfied = should_have_high_contrast_fonts_colours(
+        prs, config, slide_feedback)
     if not satisfied:
         general_feedback += "Please check colours and fonts.<br>"
 
@@ -52,12 +60,12 @@ def main_controller(prs, config):
 
     does_not_have_complete_sentences(prs, slide_feedback)
 
-    time_estimate, slide_times, cumul_slide_times = estimate_presentation_length(prs, config)
+    time_estimate, slide_times, cumul_slide_times = estimate_presentation_length(
+        prs, config)
     if time_estimate:
         print("Estimate total time for presentation: ", time_estimate)
     else:
         print("Cannot estimate presentation time without any speaker notes provided!\n")
-
 
     for slide_i, _ in enumerate(slide_feedback):
         feedback = slide_feedback[slide_i]
@@ -66,6 +74,7 @@ def main_controller(prs, config):
             slide_feedback[slide_i] = feedback.replace('\n', '<br>')
 
     display_info = {}
+    display_info["start_slide_num"] = start_slide_num
     display_info["slide_feedback"] = slide_feedback
     display_info["slide_times"] = slide_times
     display_info["cumul_slide_times"] = cumul_slide_times
@@ -84,14 +93,21 @@ def main():
         sys.exit()
 
     yaml_file = "./config/default.yaml"
-    config = read_config_yaml(yaml_file)
 
-    path_to_presentation = args.presentation
-    prs = Presentation(path_to_presentation)
+    last_modified_yaml, last_modified_pptx = -1, -1
 
-    main_controller(prs, config)
+    while True:
+        if last_modified_yaml < os.path.getmtime(yaml_file) or last_modified_pptx < os.path.getmtime(args.presentation):
+            logger.info(f'pptx file or yaml file changed.')
+            # check if pptx file changed or yaml file changed
+            config = read_config_yaml(yaml_file)
+            path_to_presentation = args.presentation
+            prs = Presentation(path_to_presentation)
+            main_controller(prs, config)
+            last_modified_yaml = os.path.getmtime(yaml_file)
+            last_modified_pptx = os.path.getmtime(args.presentation)
+        sleep(0.5)
 
 
 if __name__ == "__main__":
     main()
-
